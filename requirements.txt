@@ -1,0 +1,8 @@
+openai
+pre-commit
+tiktoken
+libcst
+llama-index
+jsonlines
+tree-sitter==0.21.3
+tree-sitter-java==0.21.0
