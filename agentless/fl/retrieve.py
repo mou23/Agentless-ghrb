@@ -52,7 +52,7 @@ def retrieve_locs(bug, args, bug_data, found_files, prev_o, write_lock=None):
         instance_id, bug["repo"], bug["base_commit"], "playground"
     )
 
-    filter_none_java(structure)
+    # filter_none_java(structure)
     # filter_out_test_files(structure)
 
     if args.filter_file:

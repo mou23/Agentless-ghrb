@@ -9,7 +9,7 @@ __pycache__/
 myenv/
 results/
 embedding/
-
+agentless-results/
 # Distribution / packaging
 .Python
 build/

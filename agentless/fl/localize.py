@@ -130,7 +130,7 @@ def localize_instance(
     bench_data = [x for x in bug_data if x["instance_id"] == instance_id][0]
     problem_statement = bench_data["problem_statement"]
 
-    filter_none_java(structure)
+    # filter_none_java(structure)
     # filter_out_test_files(structure)
 
     found_files = []

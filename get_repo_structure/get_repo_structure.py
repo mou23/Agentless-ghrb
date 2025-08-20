@@ -113,7 +113,7 @@ def create_structure(directory_path):
                     "functions": function_names,
                     "text": file_lines,
                 }
-            else:
-                curr_struct[file_name] = {}
+            # else:
+            #     curr_struct[file_name] = {}
 
     return structure

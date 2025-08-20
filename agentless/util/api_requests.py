@@ -4,7 +4,6 @@ from typing import Dict, Union
 # import anthropic
 import openai
 import tiktoken
-from transformers import AutoTokenizer
 
 
 def num_tokens_from_messages(message, model="gpt-4o-mini"):
