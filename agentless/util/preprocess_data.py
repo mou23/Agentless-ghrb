@@ -672,9 +672,9 @@ def get_repo_files(structure, filepaths: list[str]):
 
 def correct_file_paths(model_found_files, files):
     found_files = []
-    print("model_found_files:", model_found_files)
-    for file in files:
-        print("file:", file)
+    # print("model_found_files:", model_found_files)
+    # for file in files:
+    #     print("file:", file)
     if model_found_files:
         for model_file in model_found_files:
             for file_content in files:

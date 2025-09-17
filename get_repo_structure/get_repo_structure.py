@@ -87,33 +87,78 @@ def parse_java_file(file_path, file_content=None):
             return [], [], ""
 
 
-def create_structure(directory_path):
-    """Create the structure of the repository directory by parsing Java files.
-    :param directory_path: Path to the repository directory.
-    :return: A dictionary representing the structure.
+def create_structure(directory_path, *, store_text=True, max_file_bytes=2_000_000):
+    """
+    Build a nested dict of the repo.
+    - store_text=False: do not store file contents (prevents OOM).
+    - max_file_bytes: skip parsing files larger than this size (None to disable).
     """
     structure = {}
+    repo_name = os.path.basename(os.path.abspath(directory_path))
+    total_dirs = total_files = parsed_java = skipped_large = parse_errors = 0
 
-    for root, _, files in os.walk(directory_path):
-        repo_name = os.path.basename(directory_path)
+    for root, _, files in os.walk(directory_path, followlinks=False):
+        # Build nested dict for this directory
         relative_root = os.path.relpath(root, directory_path)
         if relative_root == ".":
             relative_root = repo_name
+
         curr_struct = structure
         for part in relative_root.split(os.sep):
             if part not in curr_struct:
                 curr_struct[part] = {}
             curr_struct = curr_struct[part]
+
+        total_dirs += 1
+
         for file_name in files:
+            # Always show where we are; flush so we see the last successful step if we hang/crash
+            # print("file_name", file_name, "in", relative_root, flush=True)
+
+            file_path = os.path.join(root, file_name)
+            total_files += 1
+
             if file_name.endswith(".java"):
-                file_path = os.path.join(root, file_name)
-                class_info, function_names, file_lines = parse_java_file(file_path)
-                curr_struct[file_name] = {
-                    "classes": class_info,
-                    "functions": function_names,
-                    "text": file_lines,
-                }
+                # Optional: skip very large files to avoid parser hangs / memory spikes
+                try:
+                    if max_file_bytes is not None:
+                        try:
+                            if os.path.getsize(file_path) > max_file_bytes:
+                                skipped_large += 1
+                                curr_struct[file_name] = {"classes": [], "functions": []}
+                                print(f"  skipped large file (> {max_file_bytes} bytes)", flush=True)
+                                continue
+                        except OSError:
+                            # If stat fails, just attempt to parse
+                            pass
+
+                    # Parse with error guard
+                    try:
+                        class_info, function_names, file_lines = parse_java_file(file_path)
+                        entry = {
+                            "classes": class_info or [],
+                            "functions": function_names or [],
+                        }
+                        if store_text:
+                            entry["text"] = file_lines or []
+                        curr_struct[file_name] = entry
+                        parsed_java += 1
+                        # print("  keys", list(curr_struct.keys()), flush=True)
+                    except Exception as e:
+                        parse_errors += 1
+                        curr_struct[file_name] = {"classes": [], "functions": []}
+                        print(f"  parse error: {e}", flush=True)
+                except Exception as outer_e:
+                    # Any unexpected error for this file shouldn't stop the whole walk
+                    parse_errors += 1
+                    curr_struct[file_name] = {"classes": [], "functions": []}
+                    print(f"  unexpected error: {outer_e}", flush=True)
             # else:
             #     curr_struct[file_name] = {}
 
+    print(
+        f"structure ready | dirs={total_dirs}, files={total_files}, "
+        f"parsed_java={parsed_java}, skipped_large={skipped_large}, parse_errors={parse_errors}",
+        flush=True
+    )
     return structure

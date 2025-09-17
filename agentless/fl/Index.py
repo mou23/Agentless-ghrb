@@ -24,7 +24,6 @@ from agentless.util.preprocess_data import (
 )
 from get_repo_structure.get_repo_structure import parse_java_file
 
-
 def construct_file_meta_data(file_name: str, clazzes: list, functions: list) -> dict:
     meta_data = {
         "file_name": file_name,
@@ -39,27 +38,55 @@ def construct_file_meta_data(file_name: str, clazzes: list, functions: list) -> 
     return meta_data
 
 
-def check_meta_data(meta_data: dict) -> bool:
+# def check_meta_data(meta_data: dict) -> bool:
 
+#     doc = Document(
+#         text="",
+#         metadata=meta_data,
+#         metadata_template="### {key}: {value}",
+#         text_template="Metadata:\n{metadata_str}\n-----\nCode:\n{content}",
+#     )
+
+#     if (
+#         num_tokens_from_messages(
+#             doc.get_content(metadata_mode=MetadataMode.EMBED),
+#             model="text-embedding-3-small",
+#         )
+#         > Settings.chunk_size // 2
+#     ):
+#         # half of the chunk size should not be metadata
+#         return False
+
+#     return True
+
+def _render_metadata(meta: dict, template: str = "### {key}: {value}") -> str:
+    # Render exactly how your Document template formats metadata
+    return "\n".join(template.format(key=k, value=v) for k, v in meta.items())
+
+
+def check_meta_data(meta_data: dict) -> bool:
+    # 1) Character-length guard that matches the splitter’s check
+    meta_str = _render_metadata(meta_data, template="### {key}: {value}")
+    eff_chunk = Settings.chunk_size
+    if len(meta_str) >= eff_chunk:
+        return False
+
+    # 2) Token-based guard (keep your original intent: avoid huge token cost)
     doc = Document(
         text="",
         metadata=meta_data,
         metadata_template="### {key}: {value}",
         text_template="Metadata:\n{metadata_str}\n-----\nCode:\n{content}",
     )
-
-    if (
-        num_tokens_from_messages(
-            doc.get_content(metadata_mode=MetadataMode.EMBED),
-            model="text-embedding-3-small",
-        )
-        > Settings.chunk_size // 2
-    ):
-        # half of the chunk size should not be metadata
+    token_budget = max(1, eff_chunk // 2)  # keep metadata <= half the chunk
+    meta_tokens = num_tokens_from_messages(
+        doc.get_content(metadata_mode=MetadataMode.EMBED),
+        model="text-embedding-3-small",
+    )
+    if meta_tokens > token_budget:
         return False
 
     return True
-
 
 def build_file_documents_simple(
     clazzes: list, functions: list, file_name: str, file_content: str
@@ -267,7 +294,11 @@ class EmbeddingIndex(ABC):
         self.logger.info(f"Retrieving with query:\n{self.problem_statement}")
 
         retriever = VectorIndexRetriever(index=index, similarity_top_k=100)
-        documents = retriever.retrieve(self.problem_statement)
+        try:
+            documents = retriever.retrieve(self.problem_statement)
+        except AssertionError:
+            documents = []
+
 
         self.logger.info(
             f"Embedding Tokens: {token_counter.total_embedding_token_count}"

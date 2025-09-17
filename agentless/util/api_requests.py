@@ -76,7 +76,7 @@ def handler(signum, frame):
 def request_chatgpt_engine(config, logger, base_url=None, max_retries=2, timeout=100):
     ret = None
     retries = 0
-    api_key = "sk-proj-"
+    api_key = "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"
     client = openai.OpenAI(base_url=base_url, api_key=api_key)
 
     while ret is None and retries < max_retries:

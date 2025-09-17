@@ -21,7 +21,7 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
-os.environ["OPENAI_API_KEY"] = "sk-proj-_"
+os.environ["OPENAI_API_KEY"] = "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"
 
 
 def retrieve_locs(bug, args, bug_data, found_files, prev_o, write_lock=None):

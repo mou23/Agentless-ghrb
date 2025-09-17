@@ -1,35 +1,40 @@
 #!/bin/bash
-set -e  # Exit immediately if a command exits with a non-zero status
+#SBATCH --job-name=agentless-ghrb
+#SBATCH --output=agentless-ghrb3.log
+#SBATCH --error=agentless-ghrb3.log
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=2
+#SBATCH --time=5-00:00:00
+#SBATCH --mem=64GB
+#SBATCH --account=malek_lab
+set -euo pipefail
 
+module load python/3.10.2
 # ======================
 # Config
 # ======================
-REPO_LOCATION="../ghrb-dataset"
-RESULTS_DIR="agentless-results"
-LOG_FILE="run.log"
+REPO_LOCATION="$TMPDIR/ghrb"
+echo "Preparing working dir at: $REPO_LOCATION"
+mkdir -p "$REPO_LOCATION"
 
-# ======================
-# Setup logging
-# ======================
-# Redirect stdout and stderr to both console and log file
-exec > >(tee -a "$LOG_FILE") 2>&1
+echo "Copying XML files from ../sample to $REPO_LOCATION..."
+cp -v ../sample/*.xml "$REPO_LOCATION/"
+
+echo "Downloading repositories into $REPO_LOCATION..."
+python download_repo.py "$REPO_LOCATION"
+
+RESULTS_DIR="results"
 
 # ======================
 # Timer
 # ======================
 START_TIME=$(date +%s)
 
-# Error handling: print dataset name on failure
-trap 'echo "❌ Error occurred while processing dataset: $dataset"; \
-      END_TIME=$(date +%s); \
-      ELAPSED=$((END_TIME - START_TIME)); \
-      echo "⏱️ Elapsed time before failure: $((ELAPSED / 60)) min $((ELAPSED % 60)) sec"; \
-      exit 1' ERR
 
 # ======================
 # Main Loop
 # ======================
-for dataset in seata #Apktool assertj checkstyle dubbo fastjson gson jackson-core jackson-databind jackson-dataformat-xml jsoup nacos openapi-generator retrofit rocketmq seata sslcontext-kickstart
+for dataset in Apktool assertj checkstyle dubbo fastjson gson jackson-core jackson-databind jackson-dataformat-xml jsoup nacos openapi-generator retrofit rocketmq seata sslcontext-kickstart # 
 do
     echo "🚀 Processing dataset: $dataset"
 

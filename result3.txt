@@ -1,0 +1,22 @@
+Processing project: Apktool
+Processing project: assertj
+Processing project: checkstyle
+Processing project: dubbo
+Processing project: fastjson
+Processing project: gson
+Processing project: jackson-core
+Processing project: jackson-databind
+Processing project: jackson-dataformat-xml
+Processing project: jsoup
+Processing project: nacos
+Processing project: openapi-generator
+Processing project: retrofit
+Processing project: rocketmq
+Processing project: seata
+Processing project: sslcontext-kickstart
+Processed 131
+accuracy@ 1 37 131 28.244274809160306
+accuracy@ 5 68 131 51.908396946564885
+accuracy@ 10 85 131 64.8854961832061
+MRR@ 10 0.39227553616866606 131
+MAP@ 10 0.33131961338068217 131

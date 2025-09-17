@@ -21,7 +21,7 @@ sys.stdout.reconfigure(encoding="utf-8")
 
                        
 MAX_RETRIES = 5
-os.environ["OPENAI_API_KEY"] = "sk-proj-_"
+os.environ["OPENAI_API_KEY"] = "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"
 
 
 def localize_irrelevant_instance(
@@ -51,7 +51,7 @@ def localize_irrelevant_instance(
         instance_id, bug["repo"], bug["base_commit"], "playground"
     )
 
-    filter_none_java(structure)  # some basic filtering steps
+    # filter_none_java(structure)  # some basic filtering steps
     # filter_out_test_files(structure)
 
     found_files = []
